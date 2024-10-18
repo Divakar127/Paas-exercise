@@ -3,6 +3,9 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
+# Set the page title and layout
+st.set_page_config(page_title="Data Analysis Dashboard", layout="wide")
+
 # Title of the app
 st.title('Data Analysis Dashboard')
 
@@ -50,13 +53,13 @@ if options == 'Visualizations' and 'df' in st.session_state:
     df = st.session_state['df']
 
     st.write('Correlation Heatmap')
-    plt.figure(figsize=(10, 6))
-    sns.heatmap(df.corr(), annot=True, cmap='coolwarm', fmt=".2f")
-    st.pyplot(plt)
+    fig, ax = plt.subplots(figsize=(10, 6))
+    sns.heatmap(df.corr(), annot=True, cmap='coolwarm', fmt=".2f", ax=ax)
+    st.pyplot(fig)
 
     st.write('Pairplot')
     sns.pairplot(df.dropna())
-    st.pyplot(plt)
+    st.pyplot()
 
 # Data Filtering section
 if options == 'Data Filtering' and 'df' in st.session_state:
@@ -83,4 +86,4 @@ if options == 'Data Filtering' and 'df' in st.session_state:
 
 # If no data has been uploaded
 if options != 'Home' and 'df' not in st.session_state:
-    st.write('Please upload data to proceed!')
+    st.warning('Please upload data to proceed!')
