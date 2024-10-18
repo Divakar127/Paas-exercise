@@ -29,11 +29,14 @@ def save_users(users):
 
 # Streamlit app
 def main():
+    st.set_page_config(page_title="Library Management System", page_icon="📚")
     st.title("Library Management System")
     
     # Sidebar for navigation
     menu = ["Add Book", "View Books", "Borrow Book", "Return Book", "Register User", "View Users"]
     choice = st.sidebar.selectbox("Select an option", menu)
+
+    st.markdown("---")  # Horizontal line for separation
 
     if choice == "Add Book":
         st.subheader("Add a New Book")
@@ -45,9 +48,9 @@ def main():
                 books = load_books()
                 books.append({'title': title, 'author': author, 'available': True})
                 save_books(books)
-                st.success(f"Book '{title}' added.")
+                st.success(f"Book '{title}' added.", icon="✅")
             else:
-                st.error("Please fill in all fields.")
+                st.error("Please fill in all fields.", icon="🚫")
 
     elif choice == "View Books":
         st.subheader("Available Books")
@@ -55,7 +58,8 @@ def main():
         if books:
             for i, book in enumerate(books):
                 status = 'Available' if book['available'] else 'Borrowed'
-                st.write(f"{i + 1}. **{book['title']}** by {book['author']} - {status}")
+                st.markdown(f"**{i + 1}. {book['title']}** by *{book['author']}* - {status}")
+                st.markdown("---")
         else:
             st.info("No books available.")
 
@@ -63,14 +67,14 @@ def main():
         st.subheader("Borrow a Book")
         books = load_books()
         if books:
-            book_id = st.number_input("Enter the book ID to borrow", min_value=1, max_value=len(books))
+            book_id = st.number_input("Enter the book ID to borrow", min_value=1, max_value=len(books), step=1)
             if st.button("Borrow"):
                 if books[book_id - 1]['available']:
                     books[book_id - 1]['available'] = False
                     save_books(books)
-                    st.success(f"You have borrowed '{books[book_id - 1]['title']}'.")
+                    st.success(f"You have borrowed '{books[book_id - 1]['title']}'.", icon="✅")
                 else:
-                    st.error("This book is already borrowed.")
+                    st.error("This book is already borrowed.", icon="🚫")
         else:
             st.info("No books available to borrow.")
 
@@ -78,14 +82,14 @@ def main():
         st.subheader("Return a Book")
         books = load_books()
         if books:
-            book_id = st.number_input("Enter the book ID to return", min_value=1, max_value=len(books))
+            book_id = st.number_input("Enter the book ID to return", min_value=1, max_value=len(books), step=1)
             if st.button("Return"):
                 if not books[book_id - 1]['available']:
                     books[book_id - 1]['available'] = True
                     save_books(books)
-                    st.success(f"You have returned '{books[book_id - 1]['title']}'.")
+                    st.success(f"You have returned '{books[book_id - 1]['title']}'.", icon="✅")
                 else:
-                    st.error("This book is not borrowed.")
+                    st.error("This book is not borrowed.", icon="🚫")
         else:
             st.info("No books available to return.")
 
@@ -96,18 +100,19 @@ def main():
         if st.button("Register"):
             users = load_users()
             if any(user['username'] == username for user in users):
-                st.error("Username already exists.")
+                st.error("Username already exists.", icon="🚫")
             else:
                 users.append({'username': username})
                 save_users(users)
-                st.success(f"User '{username}' registered.")
+                st.success(f"User '{username}' registered.", icon="✅")
 
     elif choice == "View Users":
         st.subheader("Registered Users")
         users = load_users()
         if users:
             for i, user in enumerate(users):
-                st.write(f"{i + 1}. {user['username']}")
+                st.markdown(f"{i + 1}. {user['username']}")
+                st.markdown("---")
         else:
             st.info("No users registered.")
 
