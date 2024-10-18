@@ -1,149 +1,114 @@
-import streamlit as st
-from PIL import Image
+import os
+import json
+from datetime import datetime
 
-# Set the page title and layout to wide
-st.set_page_config(page_title="Modern Streamlit Website", layout="wide")
+# Define the file to store tasks
+task_file = 'tasks.json'
 
-# Load an image for the header
-header_image = Image.open("header_image.jpg")  # Replace with your image
+# Load tasks from file or create a new file
+def load_tasks():
+    if os.path.exists(task_file):
+        with open(task_file, 'r') as file:
+            tasks = json.load(file)
+    else:
+        tasks = []
+    return tasks
 
-# Main header section
-st.image(header_image, use_column_width=True)
-st.title("Welcome to My Modern Streamlit Website")
-st.write("This is a clean and interactive web app built with Streamlit.")
-st.markdown("---")  # Divider
+# Save tasks to file
+def save_tasks(tasks):
+    with open(task_file, 'w') as file:
+        json.dump(tasks, file, indent=4)
 
-# About section
-st.header("About Us")
-st.write("""
-We are a forward-thinking company focused on delivering value through innovative solutions.
-Our goal is to create seamless and impactful experiences for our users. With expertise in 
-technology and design, we strive to bring the best solutions to life.
-""")
-
-# Three columns with images and descriptions
-col1, col2, col3 = st.columns(3)
-
-with col1:
-    image1 = Image.open("image1.jpg")  # Replace with your image
-    st.image(image1, caption="Our Team", use_column_width=True)
-    st.write("Meet the talented people behind our success.")
-
-with col2:
-    image2 = Image.open("image2.jpg")  # Replace with your image
-    st.image(image2, caption="Our Services", use_column_width=True)
-    st.write("We offer a wide range of cutting-edge services.")
-
-with col3:
-    image3 = Image.open("image3.jpg")  # Replace with your image
-    st.image(image3, caption="Our Vision", use_column_width=True)
-    st.write("We are committed to shaping the future with innovation.")
-
-st.markdown("---")  # Divider
-
-# Services Section
-st.header("Our Services")
-st.write("We specialize in a variety of services tailored to meet the needs of our clients.")
-
-service_col1, service_col2 = st.columns(2)
-
-with service_col1:
-    st.subheader("Web Development")
-    st.write("""
-    Our web development services are built to create fast, reliable, and visually appealing websites.
-    From frontend design to backend development, we've got you covered.
-    """)
-    st.subheader("Data Analysis")
-    st.write("""
-    Leverage the power of data to drive informed decisions. Our data analysis team provides
-    insights that can help you scale your business.
-    """)
-
-with service_col2:
-    st.subheader("Mobile Apps")
-    st.write("""
-    Our team develops stunning and functional mobile applications for both Android and iOS platforms.
-    We focus on creating intuitive user experiences.
-    """)
-    st.subheader("Consulting")
-    st.write("""
-    Need expert advice? Our consulting services provide you with the insights and strategies to
-    tackle complex challenges and grow your business.
-    """)
-
-st.markdown("---")  # Divider
-
-# Testimonials section
-st.header("Testimonials")
-st.write("Here’s what our clients have to say:")
-
-testimonial_col1, testimonial_col2 = st.columns(2)
-
-with testimonial_col1:
-    st.write("""
-    **"Their web development services were exceptional. Our traffic increased by 30%!"**
-    - Sarah, CEO at Tech Innovators
-    """)
-    st.write("""
-    **"Their consulting team helped us optimize our business strategy, resulting in a 15% growth."**
-    - John, Founder of DataScape
-    """)
-
-with testimonial_col2:
-    st.write("""
-    **"We loved their attention to detail and the overall experience with our mobile app development."**
-    - Emily, Product Manager at AppSolutions
-    """)
-    st.write("""
-    **"The data insights they provided were game-changing for our company."**
-    - Alex, Head of Marketing at FinCorp
-    """)
-
-st.markdown("---")  # Divider
-
-# Contact section
-st.header("Get in Touch")
-contact_form = """
-<form action="https://formsubmit.co/YOUR_EMAIL" method="POST">
-     <input type="hidden" name="_captcha" value="false">
-     <input type="text" name="name" placeholder="Your name" required>
-     <input type="email" name="email" placeholder="Your email" required>
-     <textarea name="message" placeholder="Your message here" required></textarea>
-     <button type="submit">Send</button>
-</form>
-"""
-
-st.markdown(contact_form, unsafe_allow_html=True)
-
-# Apply basic CSS styling
-st.markdown("""
-    <style>
-    form {
-        display: flex;
-        flex-direction: column;
-        gap: 15px;
+# Add a task
+def add_task():
+    task_description = input("Enter the task description: ")
+    due_date = input("Enter the due date (YYYY-MM-DD) or press Enter to skip: ")
+    task = {
+        'description': task_description,
+        'due_date': due_date if due_date else "No due date",
+        'completed': False,
+        'created_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     }
-    input, textarea {
-        width: 100%;
-        padding: 10px;
-        border-radius: 5px;
-        border: 1px solid #ccc;
-        font-size: 16px;
-    }
-    button {
-        padding: 10px;
-        background-color: #04AA6D;
-        color: white;
-        border: none;
-        border-radius: 5px;
-        font-size: 16px;
-        cursor: pointer;
-    }
-    button:hover {
-        background-color: #45a049;
-    }
-    </style>
-    """, unsafe_allow_html=True)
+    tasks = load_tasks()
+    tasks.append(task)
+    save_tasks(tasks)
+    print(f"Task added: {task_description}")
 
-# Footer section
-st.write("© 2024 Modern Streamlit Website. All rights reserved.")
+# View all tasks
+def view_tasks():
+    tasks = load_tasks()
+    if not tasks:
+        print("No tasks available.")
+        return
+
+    print(f"\n{'ID':<5} {'Description':<30} {'Due Date':<15} {'Status':<10} {'Created At'}")
+    print("-" * 80)
+
+    for i, task in enumerate(tasks):
+        status = 'Done' if task['completed'] else 'Pending'
+        print(f"{i+1:<5} {task['description']:<30} {task['due_date']:<15} {status:<10} {task['created_at']}")
+
+    print("-" * 80)
+
+# Mark a task as complete
+def complete_task():
+    tasks = load_tasks()
+    if not tasks:
+        print("No tasks to complete.")
+        return
+
+    view_tasks()
+    task_id = int(input("Enter the task ID to mark as complete: ")) - 1
+
+    if 0 <= task_id < len(tasks):
+        tasks[task_id]['completed'] = True
+        save_tasks(tasks)
+        print(f"Task '{tasks[task_id]['description']}' marked as complete.")
+    else:
+        print("Invalid task ID.")
+
+# Delete a task
+def delete_task():
+    tasks = load_tasks()
+    if not tasks:
+        print("No tasks to delete.")
+        return
+
+    view_tasks()
+    task_id = int(input("Enter the task ID to delete: ")) - 1
+
+    if 0 <= task_id < len(tasks):
+        removed_task = tasks.pop(task_id)
+        save_tasks(tasks)
+        print(f"Task '{removed_task['description']}' deleted.")
+    else:
+        print("Invalid task ID.")
+
+# Main program loop
+def main():
+    while True:
+        print("\nTask Manager")
+        print("1. Add a Task")
+        print("2. View All Tasks")
+        print("3. Mark a Task as Complete")
+        print("4. Delete a Task")
+        print("5. Exit")
+
+        choice = input("Enter your choice (1-5): ")
+
+        if choice == '1':
+            add_task()
+        elif choice == '2':
+            view_tasks()
+        elif choice == '3':
+            complete_task()
+        elif choice == '4':
+            delete_task()
+        elif choice == '5':
+            print("Goodbye!")
+            break
+        else:
+            print("Invalid choice. Please try again.")
+
+if __name__ == "__main__":
+    main()
