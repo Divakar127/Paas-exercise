@@ -25,4 +25,4 @@ if st.button('Click me!'):
 
 # Sidebar example
 st.sidebar.title('Sidebar')
-st.sidebar.write('This is a sidebar example.'
+st.sidebar.write('This is a sidebar example.')
