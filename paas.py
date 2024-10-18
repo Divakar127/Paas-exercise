@@ -1,114 +1,115 @@
+import streamlit as st
 import os
 import json
-from datetime import datetime
 
-# Define the file to store tasks
-task_file = 'tasks.json'
+# Define the files to store books and users
+book_file = 'books.json'
+user_file = 'users.json'
 
-# Load tasks from file or create a new file
-def load_tasks():
-    if os.path.exists(task_file):
-        with open(task_file, 'r') as file:
-            tasks = json.load(file)
-    else:
-        tasks = []
-    return tasks
+# Load books and users from files or create new files
+def load_books():
+    if os.path.exists(book_file):
+        with open(book_file, 'r') as file:
+            return json.load(file)
+    return []
 
-# Save tasks to file
-def save_tasks(tasks):
-    with open(task_file, 'w') as file:
-        json.dump(tasks, file, indent=4)
+def load_users():
+    if os.path.exists(user_file):
+        with open(user_file, 'r') as file:
+            return json.load(file)
+    return []
 
-# Add a task
-def add_task():
-    task_description = input("Enter the task description: ")
-    due_date = input("Enter the due date (YYYY-MM-DD) or press Enter to skip: ")
-    task = {
-        'description': task_description,
-        'due_date': due_date if due_date else "No due date",
-        'completed': False,
-        'created_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    }
-    tasks = load_tasks()
-    tasks.append(task)
-    save_tasks(tasks)
-    print(f"Task added: {task_description}")
+def save_books(books):
+    with open(book_file, 'w') as file:
+        json.dump(books, file, indent=4)
 
-# View all tasks
-def view_tasks():
-    tasks = load_tasks()
-    if not tasks:
-        print("No tasks available.")
-        return
+def save_users(users):
+    with open(user_file, 'w') as file:
+        json.dump(users, file, indent=4)
 
-    print(f"\n{'ID':<5} {'Description':<30} {'Due Date':<15} {'Status':<10} {'Created At'}")
-    print("-" * 80)
-
-    for i, task in enumerate(tasks):
-        status = 'Done' if task['completed'] else 'Pending'
-        print(f"{i+1:<5} {task['description']:<30} {task['due_date']:<15} {status:<10} {task['created_at']}")
-
-    print("-" * 80)
-
-# Mark a task as complete
-def complete_task():
-    tasks = load_tasks()
-    if not tasks:
-        print("No tasks to complete.")
-        return
-
-    view_tasks()
-    task_id = int(input("Enter the task ID to mark as complete: ")) - 1
-
-    if 0 <= task_id < len(tasks):
-        tasks[task_id]['completed'] = True
-        save_tasks(tasks)
-        print(f"Task '{tasks[task_id]['description']}' marked as complete.")
-    else:
-        print("Invalid task ID.")
-
-# Delete a task
-def delete_task():
-    tasks = load_tasks()
-    if not tasks:
-        print("No tasks to delete.")
-        return
-
-    view_tasks()
-    task_id = int(input("Enter the task ID to delete: ")) - 1
-
-    if 0 <= task_id < len(tasks):
-        removed_task = tasks.pop(task_id)
-        save_tasks(tasks)
-        print(f"Task '{removed_task['description']}' deleted.")
-    else:
-        print("Invalid task ID.")
-
-# Main program loop
+# Streamlit app
 def main():
-    while True:
-        print("\nTask Manager")
-        print("1. Add a Task")
-        print("2. View All Tasks")
-        print("3. Mark a Task as Complete")
-        print("4. Delete a Task")
-        print("5. Exit")
+    st.title("Library Management System")
+    
+    # Sidebar for navigation
+    menu = ["Add Book", "View Books", "Borrow Book", "Return Book", "Register User", "View Users"]
+    choice = st.sidebar.selectbox("Select an option", menu)
 
-        choice = input("Enter your choice (1-5): ")
+    if choice == "Add Book":
+        st.subheader("Add a New Book")
+        title = st.text_input("Enter book title")
+        author = st.text_input("Enter book author")
+        
+        if st.button("Add Book"):
+            if title and author:
+                books = load_books()
+                books.append({'title': title, 'author': author, 'available': True})
+                save_books(books)
+                st.success(f"Book '{title}' added.")
+            else:
+                st.error("Please fill in all fields.")
 
-        if choice == '1':
-            add_task()
-        elif choice == '2':
-            view_tasks()
-        elif choice == '3':
-            complete_task()
-        elif choice == '4':
-            delete_task()
-        elif choice == '5':
-            print("Goodbye!")
-            break
+    elif choice == "View Books":
+        st.subheader("Available Books")
+        books = load_books()
+        if books:
+            for i, book in enumerate(books):
+                status = 'Available' if book['available'] else 'Borrowed'
+                st.write(f"{i + 1}. **{book['title']}** by {book['author']} - {status}")
         else:
-            print("Invalid choice. Please try again.")
+            st.info("No books available.")
+
+    elif choice == "Borrow Book":
+        st.subheader("Borrow a Book")
+        books = load_books()
+        if books:
+            book_id = st.number_input("Enter the book ID to borrow", min_value=1, max_value=len(books))
+            if st.button("Borrow"):
+                if books[book_id - 1]['available']:
+                    books[book_id - 1]['available'] = False
+                    save_books(books)
+                    st.success(f"You have borrowed '{books[book_id - 1]['title']}'.")
+                else:
+                    st.error("This book is already borrowed.")
+        else:
+            st.info("No books available to borrow.")
+
+    elif choice == "Return Book":
+        st.subheader("Return a Book")
+        books = load_books()
+        if books:
+            book_id = st.number_input("Enter the book ID to return", min_value=1, max_value=len(books))
+            if st.button("Return"):
+                if not books[book_id - 1]['available']:
+                    books[book_id - 1]['available'] = True
+                    save_books(books)
+                    st.success(f"You have returned '{books[book_id - 1]['title']}'.")
+                else:
+                    st.error("This book is not borrowed.")
+        else:
+            st.info("No books available to return.")
+
+    elif choice == "Register User":
+        st.subheader("Register a New User")
+        username = st.text_input("Enter username")
+        
+        if st.button("Register"):
+            users = load_users()
+            if any(user['username'] == username for user in users):
+                st.error("Username already exists.")
+            else:
+                users.append({'username': username})
+                save_users(users)
+                st.success(f"User '{username}' registered.")
+
+    elif choice == "View Users":
+        st.subheader("Registered Users")
+        users = load_users()
+        if users:
+            for i, user in enumerate(users):
+                st.write(f"{i + 1}. {user['username']}")
+        else:
+            st.info("No users registered.")
 
 if __name__ == "__main__":
     main()
